@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../environments/environment';
 
 /** Mirrors LoanApplicationController.LoanApplication in the ocphelloworld backend. */
 export interface LoanApplication {
@@ -22,8 +23,8 @@ export interface CreateLoanApplicationRequest {
 @Injectable({ providedIn: 'root' })
 export class LoanApplicationService {
   private readonly http = inject(HttpClient);
-  // Relative URL: proxied to the backend by proxy.conf.json (ng serve) or nginx (container).
-  private readonly baseUrl = '/api/loan-applications';
+  // Full backend URL in production builds; relative (proxied by proxy.conf.json) under ng serve.
+  private readonly baseUrl = `${environment.apiBaseUrl}/api/loan-applications`;
 
   getAll(): Observable<LoanApplication[]> {
     return this.http.get<LoanApplication[]>(this.baseUrl);

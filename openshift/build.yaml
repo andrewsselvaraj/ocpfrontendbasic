@@ -28,6 +28,7 @@ spec:
   resources:
     limits:
       cpu: "1"
-      memory: 1Gi
+      # npm ci plus the Angular build gets OOM-killed at 1Gi
+      memory: 2Gi
   triggers:
     - type: ConfigChange
