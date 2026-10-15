@@ -23,7 +23,7 @@ export interface CreateLoanApplicationRequest {
 @Injectable({ providedIn: 'root' })
 export class LoanApplicationService {
   private readonly http = inject(HttpClient);
-  // Full backend URL in production builds; relative (proxied by proxy.conf.json) under ng serve.
+  // Relative URL: routed by the OpenShift router in production, by proxy.conf.json under ng serve.
   private readonly baseUrl = `${environment.apiBaseUrl}/api/loan-applications`;
 
   getAll(): Observable<LoanApplication[]> {

@@ -2,7 +2,7 @@
 
 An Angular 22 frontend for the [Loan Management System](https://github.com/andrewsselvaraj/ocphelloworld) Spring Boot service. Use it to submit loan applications, list them, and look one up by ID.
 
-The app calls the backend only through relative `/api/...` URLs. Locally, the Angular dev server proxies those calls; on OpenShift, nginx does. The backend therefore needs no CORS configuration.
+The app calls the backend only through relative `/api/...` URLs. Locally, the Angular dev server proxies those calls; on OpenShift, the router sends `/api` on the frontend's host straight to the backend Service. The browser only ever talks to one origin, so no CORS is involved.
 
 ## Run locally
 
@@ -32,7 +32,12 @@ The backend keeps applications in memory, so they disappear when it restarts.
 
 ## Deploy to OpenShift (Developer Sandbox)
 
-Deploy the backend first (see the `ocphelloworld` README) into the **same project**. The frontend's nginx proxies `/api/` to the backend Service `loan-management-system:8080` (see [nginx/api-proxy.conf](nginx/api-proxy.conf)). nginx resolves that name at startup, so the pod will not start until the backend Service exists.
+Deploy the backend first (see the `ocphelloworld` README) into the **same project**. [openshift/route.yaml](openshift/route.yaml) defines two Routes on one host:
+
+- `loan-management-frontend`: `/` to the nginx Service serving the Angular app.
+- `loan-management-api`: `/api` to the backend Service `loan-management-system`, rate-limited per client IP (30 requests per 3 seconds, 10 concurrent connections). Over the limit, the router drops the connection; it does not return `429`.
+
+Both Routes set `host` explicitly, because Routes can only share a host that each one names. Change it if you deploy to a different project or cluster.
 
 The image is built inside the cluster from this GitHub repo using the multi-stage [Dockerfile](Dockerfile) (UBI Node.js 24 for the build, UBI nginx for the runtime). Push your changes to `main` first.
 

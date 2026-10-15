@@ -1,3 +1,7 @@
+# Both routes share one host, so the browser sees a single origin (no CORS).
+# The router sends /api to the backend Service and everything else to nginx.
+# The host is set explicitly because two routes can only share a host that is
+# named in both; change it if you deploy to another project or cluster.
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -5,9 +9,35 @@ metadata:
   labels:
     app: loan-management-frontend
 spec:
+  host: loan-management-frontend-andrew-india-dev.apps.rm1.0a51.p1.openshiftapps.com
   to:
     kind: Service
     name: loan-management-frontend
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: loan-management-api
+  labels:
+    app: loan-management-system
+  annotations:
+    # Per-client-IP limits, counted separately by each router pod
+    haproxy.router.openshift.io/rate-limit-connections: "true"
+    # Max HTTP requests per client IP in a 3-second window
+    haproxy.router.openshift.io/rate-limit-connections.rate-http: "30"
+    # Max simultaneous connections per client IP
+    haproxy.router.openshift.io/rate-limit-connections.concurrent-tcp: "10"
+spec:
+  host: loan-management-frontend-andrew-india-dev.apps.rm1.0a51.p1.openshiftapps.com
+  path: /api
+  to:
+    kind: Service
+    name: loan-management-system
   port:
     targetPort: http
   tls:
