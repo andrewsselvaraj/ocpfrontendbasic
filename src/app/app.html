@@ -1,0 +1,126 @@
+<header class="header">
+  <h1>Loan Management System</h1>
+  <p>Submit and track loan applications.</p>
+</header>
+
+<main class="layout">
+  <section class="card">
+    <h2>New application</h2>
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <label>
+        Applicant name
+        <input type="text" formControlName="applicantName" autocomplete="name" />
+      </label>
+      @if (form.controls.applicantName.touched && form.controls.applicantName.invalid) {
+        <span class="field-error">Enter the applicant's name.</span>
+      }
+
+      <label>
+        Loan type
+        <select formControlName="loanType">
+          <option value="" disabled>Select a loan type</option>
+          @for (type of loanTypes; track type) {
+            <option [value]="type">{{ type }}</option>
+          }
+        </select>
+      </label>
+      @if (form.controls.loanType.touched && form.controls.loanType.invalid) {
+        <span class="field-error">Choose a loan type.</span>
+      }
+
+      <label>
+        Requested amount
+        <input type="number" formControlName="requestedAmount" min="0.01" step="0.01" />
+      </label>
+      @if (form.controls.requestedAmount.touched && form.controls.requestedAmount.invalid) {
+        <span class="field-error">Enter an amount greater than zero.</span>
+      }
+
+      <button type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Submitting…' : 'Submit application' }}
+      </button>
+    </form>
+
+    @if (submitError(); as message) {
+      <p class="alert error">{{ message }}</p>
+    }
+    @if (lastSubmitted(); as app) {
+      <p class="alert success">Application #{{ app.id }} submitted. Status: {{ app.status }}.</p>
+    }
+  </section>
+
+  <section class="card">
+    <h2>Find by ID</h2>
+    <form [formGroup]="lookupForm" (ngSubmit)="lookup()" class="inline" novalidate>
+      <input
+        type="number"
+        formControlName="id"
+        min="1"
+        placeholder="Application ID"
+        aria-label="Application ID"
+      />
+      <button type="submit">Find</button>
+    </form>
+    @if (lookupError(); as message) {
+      <p class="alert error">{{ message }}</p>
+    }
+    @if (found(); as app) {
+      <dl class="details">
+        <dt>ID</dt>
+        <dd>{{ app.id }}</dd>
+        <dt>Applicant</dt>
+        <dd>{{ app.applicantName }}</dd>
+        <dt>Loan type</dt>
+        <dd>{{ app.loanType }}</dd>
+        <dt>Amount</dt>
+        <dd>{{ app.requestedAmount | currency }}</dd>
+        <dt>Status</dt>
+        <dd><span class="status">{{ app.status }}</span></dd>
+        <dt>Submitted</dt>
+        <dd>{{ app.submittedAt | date: 'medium' }}</dd>
+      </dl>
+    }
+  </section>
+
+  <section class="card wide">
+    <div class="card-title">
+      <h2>Applications</h2>
+      <button type="button" class="secondary" (click)="refresh()" [disabled]="loading()">
+        {{ loading() ? 'Loading…' : 'Refresh' }}
+      </button>
+    </div>
+
+    @if (listError(); as message) {
+      <p class="alert error">{{ message }}</p>
+    } @else if (applications().length === 0 && !loading()) {
+      <p class="empty">No applications yet. Submit one above.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Applicant</th>
+              <th>Loan type</th>
+              <th class="num">Amount</th>
+              <th>Status</th>
+              <th>Submitted</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (app of applications(); track app.id) {
+              <tr>
+                <td>{{ app.id }}</td>
+                <td>{{ app.applicantName }}</td>
+                <td>{{ app.loanType }}</td>
+                <td class="num">{{ app.requestedAmount | currency }}</td>
+                <td><span class="status">{{ app.status }}</span></td>
+                <td>{{ app.submittedAt | date: 'medium' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</main>

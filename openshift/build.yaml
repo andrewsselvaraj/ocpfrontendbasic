@@ -1,0 +1,33 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: loan-management-frontend
+  labels:
+    app: loan-management-frontend
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: loan-management-frontend
+  labels:
+    app: loan-management-frontend
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/andrewsselvaraj/ocpfrontendbasic.git
+      ref: main
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: loan-management-frontend:latest
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  triggers:
+    - type: ConfigChange

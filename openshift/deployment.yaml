@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loan-management-frontend
+  labels:
+    app: loan-management-frontend
+    app.kubernetes.io/part-of: loan-management-system
+    app.openshift.io/runtime: angularjs
+  annotations:
+    # Roll out a new pod whenever the build pushes a new image to the ImageStream
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"loan-management-frontend:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"app\")].image"}]
+    # Draws the frontend -> backend arrow in the Topology view
+    app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"loan-management-system"}]'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loan-management-frontend
+  template:
+    metadata:
+      labels:
+        app: loan-management-frontend
+    spec:
+      containers:
+        - name: app
+          image: loan-management-frontend:latest
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
